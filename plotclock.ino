@@ -89,8 +89,7 @@ void loop()
     lift(0);
 
     hour();
-    while ((i+1)*10 <= hour())
-    {
+    while ((i+1)*10 <= hour()) {
       i++;
     }
 
@@ -100,8 +99,7 @@ void loop()
     number(28, 25, 11, 0.9);
 
     i=0;
-    while ((i+1)*10 <= minute())
-    {
+    while ((i+1)*10 <= minute()) {
       i++;
     }
     number(34, 25, i, 0.9);
@@ -126,14 +124,15 @@ void number(float bx, float by, int num, float scale) {
     bogenGZS(bx + 7 * scale, by + 10 * scale, 10 * scale, -0.8, 6.7, 0.5);
     lift(1);
     break;
+    
   case 1:
-
     drawTo(bx + 3 * scale, by + 15 * scale);
     lift(0);
     drawTo(bx + 10 * scale, by + 20 * scale);
     drawTo(bx + 10 * scale, by + 0 * scale);
     lift(1);
     break;
+    
   case 2:
     drawTo(bx + 2 * scale, by + 12 * scale);
     lift(0);
@@ -142,6 +141,7 @@ void number(float bx, float by, int num, float scale) {
     drawTo(bx + 12 * scale, by + 0 * scale);
     lift(1);
     break;
+    
   case 3:
     drawTo(bx + 2 * scale, by + 17 * scale);
     lift(0);
@@ -149,6 +149,7 @@ void number(float bx, float by, int num, float scale) {
     bogenUZS(bx + 5 * scale, by + 5 * scale, 5 * scale, 1.57, -3, 1);
     lift(1);
     break;
+    
   case 4:
     drawTo(bx + 10 * scale, by + 0 * scale);
     lift(0);
@@ -157,6 +158,7 @@ void number(float bx, float by, int num, float scale) {
     drawTo(bx + 12 * scale, by + 6 * scale);
     lift(1);
     break;
+    
   case 5:
     drawTo(bx + 2 * scale, by + 5 * scale);
     lift(0);
@@ -165,6 +167,7 @@ void number(float bx, float by, int num, float scale) {
     drawTo(bx + 12 * scale, by + 20 * scale);
     lift(1);
     break;
+    
   case 6:
     drawTo(bx + 2 * scale, by + 10 * scale);
     lift(0);
@@ -172,6 +175,7 @@ void number(float bx, float by, int num, float scale) {
     drawTo(bx + 11 * scale, by + 20 * scale);
     lift(1);
     break;
+    
   case 7:
     drawTo(bx + 2 * scale, by + 20 * scale);
     lift(0);
@@ -179,6 +183,7 @@ void number(float bx, float by, int num, float scale) {
     drawTo(bx + 2 * scale, by + 0);
     lift(1);
     break;
+    
   case 8:
     drawTo(bx + 5 * scale, by + 10 * scale);
     lift(0);
@@ -225,7 +230,6 @@ void number(float bx, float by, int num, float scale) {
     drawTo(78, 44);
     lift(2);
     //speed = 3;
-
     break;
 
   case 11:
@@ -249,10 +253,8 @@ void lift(char lift) {
     // OPTIMIEREN  !
 
   case 0: //850
-
       if (servoLift >= LIFT0) {
-      while (servoLift >= LIFT0) 
-      {
+      while (servoLift >= LIFT0) {
         servoLift--;
         servo1.writeMicroseconds(servoLift);				
         delayMicroseconds(LIFTSPEED);
@@ -263,21 +265,16 @@ void lift(char lift) {
         servoLift++;
         servo1.writeMicroseconds(servoLift);
         delayMicroseconds(LIFTSPEED);
-
       }
-
     }
-
     break;
 
   case 1: //150
-
     if (servoLift >= LIFT1) {
       while (servoLift >= LIFT1) {
         servoLift--;
         servo1.writeMicroseconds(servoLift);
         delayMicroseconds(LIFTSPEED);
-
       }
     } 
     else {
@@ -286,13 +283,10 @@ void lift(char lift) {
         servo1.writeMicroseconds(servoLift);
         delayMicroseconds(LIFTSPEED);
       }
-
     }
-
     break;
 
   case 2:
-
     if (servoLift >= LIFT2) {
       while (servoLift >= LIFT2) {
         servoLift--;
@@ -322,7 +316,6 @@ void bogenUZS(float bx, float by, float radius, int start, int ende, float sqee)
     count += inkr;
   } 
   while ((start + count) > ende);
-
 }
 
 void bogenGZS(float bx, float by, float radius, int start, int ende, float sqee) {
@@ -353,7 +346,6 @@ void drawTo(double pX, double pY) {
   for (i = 0; i <= c; i++) {
     // draw line point by point
     set_XY(lastX + (i * dx / c), lastY + (i * dy / c));
-
   }
 
   lastX = pX;
