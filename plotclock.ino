@@ -69,10 +69,10 @@ void setup()
   setTime(19,24,0,0,0,0);
 
   drawTo(75, 44);
-  lift(0);
-  servo1.attach(2);  //  lifting servo
-  servo2.attach(3);  //  left servo
-  servo3.attach(4);  //  right servo
+  lift(1);
+  servo1.attach(9);  //  lifting servo
+  servo2.attach(10);  //  left servo
+  servo3.attach(11);  //  right servo
   delay(1000);
 
 } 
@@ -85,6 +85,9 @@ void loop()
   
   int i = 0;
   if (last_min != minute()) {
+    if (!servo1.attached()) servo1.attach(9);
+    if (!servo2.attached()) servo2.attach(10);
+    if (!servo3.attached()) servo3.attach(11);
 
     lift(0);
 
@@ -110,6 +113,9 @@ void loop()
     drawTo(75, 47.5);
     lift(1);
     last_min = minute();
+    servo1.detach();
+    servo2.detach();
+    servo3.detach();
   }
 
 } 
