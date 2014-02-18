@@ -1,16 +1,36 @@
 // Plotclock
 // cc - by Johannes Heberlein 2014
-// v 1.0
+// v 1.01
 // thingiverse.com/joo   wiki.fablab-nuernberg.de
 
 // units: mm; microseconds; radians
-// origin: bottom left of drawing surface (see sketchUp file)
+// origin: bottom left of drawing surface
 
-// todo detail m3, info grafik winkel, kalibr 
+// time library see http://playground.arduino.cc/Code/time 
 
-// #define kalibration
+// delete or mark the next line as comment when done with calibration  
+#define CALIBRATION
 
-#define SERVOFAKTOR 650
+// When in calibration mode, adjust the following factor until the servos move exactly 90 degrees
+#define SERVOFAKTOR 620
+
+// Zero-position of left and right servo
+// When in calibration mode, adjust the NULL-values so that the servo arms are at all times parallel
+// either to the X or Y axis
+#define SERVOLEFTNULL 1900
+#define SERVORIGHTNULL 984
+
+#define SERVOPINLIFT  2
+#define SERVOPINLEFT  3
+#define SERVOPINRIGHT 4
+
+// lift positions of lifting servo
+#define LIFT0 1080 // on drawing surface
+#define LIFT1 925  // between numbers
+#define LIFT2 725  // going towards sweeper
+
+// speed of liftimg arm, higher is slower
+#define LIFTSPEED 1500
 
 // length of arms
 #define L1 35
@@ -24,28 +44,10 @@
 #define O2X 47
 #define O2Y -25
 
-// Zero-position of left and right servo
-#define SERVOLEFTNULL 1890
-#define SERVORIGHTNULL 960
 
-// lift positions of lifting servo
-#define LIFT0 1080// on drawing surface
-#define LIFT1 925// between numbers
-#define LIFT2 725
-// going towards sweeper
 
-// speed of liftimg arm, higher is slower
-#define LIFTSPEED 1500
-
-// servo width:
-
-// Servo1: Write: 1080ms; Lift Sweep: 724; Lift Number: 924 
-// Servo2: 0.65-1.98
-// Servo3: 1.1-1.8ms 
-
-#include <Time.h>
+#include <Time.h> // see http://playground.arduino.cc/Code/time 
 #include <Servo.h>
-#include <LiquidCrystal.h>
 
 int servoLift = 1500;
 
@@ -53,38 +55,45 @@ Servo servo1;  //
 Servo servo2;  // 
 Servo servo3;  // 
 
-int val;    // variable to read the value from the analog pin 
-
 volatile double lastX = 75;
 volatile double lastY = 47.5;
 
 int last_min = 0;
 
-// initialize the library with the numbers of the interface pins
-//LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-
 void setup() 
 { 
-  // Set current time
-  setTime(19,24,0,0,0,0);
+  // Set current time only the first to values, hh,mm are needed
+  setTime(19,38,0,0,0,0);
 
-  drawTo(75, 44);
+  drawTo(75.2, 47);
   lift(0);
-  servo1.attach(2);  //  lifting servo
-  servo2.attach(3);  //  left servo
-  servo3.attach(4);  //  right servo
+  servo1.attach(SERVOPINLIFT);  //  lifting servo
+  servo2.attach(SERVOPINLEFT);  //  left servo
+  servo3.attach(SERVOPINRIGHT);  //  right servo
   delay(1000);
 
 } 
 
 void loop() 
 { 
-    
-    //servo2.writeMicroseconds(M_PI *SERVOFAKTOR + SERVOLEFTNULL);
 
-  
+#ifdef CALIBRATION
+
+  // Servohorns will have 90° between movements, parallel to x and y axis
+  drawTo(-3, 29.2);
+  delay(500);
+  drawTo(74.1, 28);
+  delay(500);
+
+#else 
+
+
   int i = 0;
   if (last_min != minute()) {
+
+    if (!servo1.attached()) servo1.attach(SERVOPINLIFT);
+    if (!servo2.attached()) servo2.attach(SERVOPINLEFT);
+    if (!servo3.attached()) servo3.attach(SERVOPINRIGHT);
 
     lift(0);
 
@@ -107,10 +116,16 @@ void loop()
     number(34, 25, i, 0.9);
     number(48, 25, (minute()-i*10), 0.9);
     lift(2);
-    drawTo(75, 47.5);
+    drawTo(74.2, 47.5);
     lift(1);
     last_min = minute();
+
+    servo1.detach();
+    servo2.detach();
+    servo3.detach();
   }
+
+#endif
 
 } 
 
@@ -196,11 +211,9 @@ void number(float bx, float by, int num, float scale) {
     break;
 
   case 111:
-    //lift(2);
-    //drawTo(75, 47.5);
+
     lift(0);
-    //speed = 0;
-    drawTo(75, 43);
+    drawTo(70, 46);
     drawTo(65, 43);
 
     drawTo(65, 49);
@@ -221,10 +234,9 @@ void number(float bx, float by, int num, float scale) {
 
     drawTo(5, 20);
     drawTo(60, 44);
-    drawTo(77, 44);
-    drawTo(78, 44);
+
+    drawTo(75.2, 47);
     lift(2);
-    //speed = 3;
 
     break;
 
@@ -246,7 +258,7 @@ void number(float bx, float by, int num, float scale) {
 
 void lift(char lift) {
   switch (lift) {
-    // OPTIMIEREN  !
+    // room to optimize  !
 
   case 0: //850
 
@@ -380,14 +392,12 @@ void set_XY(double Tx, double Ty)
   a1 = atan2(dy, dx); //
   a2 = return_angle(L1, L2, c);
 
-  //lcd.setCursor(0, 0);
   servo2.writeMicroseconds(floor(((a2 + a1 - M_PI) * SERVOFAKTOR) + SERVOLEFTNULL));
-  //lcd.print(floor(((a2 + a1 - M_PI) * 750) + SERVOLEFTNULL));
 
   // calculate joinr arm point for triangle of the right servo arm
   a2 = return_angle(L2, L1, c);
-  Hx = Tx + L3 * cos((a1 - a2 + 0.637) + M_PI); //36,5°
-  Hy = Ty + L3 * sin((a1 - a2 + 0.637) + M_PI);
+  Hx = Tx + L3 * cos((a1 - a2 + 0.621) + M_PI); //36,5°
+  Hy = Ty + L3 * sin((a1 - a2 + 0.621) + M_PI);
 
   // calculate triangle between pen joint, servoRight and arm joint
   dx = Hx - O2X;
@@ -397,9 +407,11 @@ void set_XY(double Tx, double Ty)
   a1 = atan2(dy, dx);
   a2 = return_angle(L1, (L2 - L3), c);
 
-  //lcd.setCursor(0, 1);
   servo3.writeMicroseconds(floor(((a1 - a2) * SERVOFAKTOR) + SERVORIGHTNULL));
-  //  lcd.print(floor(((a1 - a2) * 750) + SERVORIGHTNULL));
+
 }
+
+
+
 
 
