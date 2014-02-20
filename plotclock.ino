@@ -10,6 +10,7 @@
 
 // delete or mark the next line as comment when done with calibration  
 #define CALIBRATION
+#define REALTIMECLOCK
 
 // When in calibration mode, adjust the following factor until the servos move exactly 90 degrees
 #define SERVOFAKTOR 620
@@ -49,6 +50,16 @@
 #include <Time.h> // see http://playground.arduino.cc/Code/time 
 #include <Servo.h>
 
+#ifdef REALTIMECLOCK
+// for instructions on how to hook up a real time clock,
+// see here -> http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
+// DS1307RTC works with the DS1307, DS1337 and DS3231 real time clock chips.
+// Please run the SetTime example to initialize the time on new RTC chips and begin running.
+
+  #include <Wire.h>
+  #include <DS1307RTC.h> // see http://playground.arduino.cc/Code/time    
+#endif
+
 int servoLift = 1500;
 
 Servo servo1;  // 
@@ -62,8 +73,34 @@ int last_min = 0;
 
 void setup() 
 { 
+#ifdef REALTIMECLOCK
+  Serial.begin(9600);
+  //while (!Serial) {
+  //  ; // wait for serial port to connect. Needed for Leonardo only
+  //}
+
+  // Set current time only the first to values, hh,mm are needed  
+  tmElements_t tm;
+  if (RTC.read(tm)) 
+  {
+    setTime(tm.Hour,tm.Minute,tm.Second,tm.Day,tm.Month,tm.Year);
+  } 
+  else 
+  {
+    if (RTC.chipPresent())
+    {
+      Serial.println("The DS1307 is stopped.  Please run the SetTime example to initialize the time and begin running.");
+    } 
+    else {
+      Serial.println("DS1307 read error!  Please check the circuitry.");
+    } 
+    // Set current time only the first to values, hh,mm are needed
+    setTime(19,38,0,0,0,0);
+  }
+#else  
   // Set current time only the first to values, hh,mm are needed
   setTime(19,38,0,0,0,0);
+#endif
 
   drawTo(75.2, 47);
   lift(0);
