@@ -15,11 +15,11 @@
 //       - see http://www.pjrc.com/teensy/td_libs_DS1307RTC.html for how to hook up the real time clock 
 
 // delete or mark the next line as comment if you don't need these
-//#define CALIBRATION      // enable calibration mode
-#define REALTIMECLOCK    // enable real time clock
+#define CALIBRATION      // enable calibration mode
+//#define REALTIMECLOCK    // enable real time clock
 
 // When in calibration mode, adjust the following factor until the servos move exactly 90 degrees
-#define SERVOFAKTORLEFT 800
+#define SERVOFAKTORLEFT 650
 #define SERVOFAKTORRIGHT 650
 
 // Zero-position of left and right servo
