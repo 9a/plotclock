@@ -1,24 +1,32 @@
 // Plotclock
 // cc - by Johannes Heberlein 2014
-// v 1.01
+// v 1.02
 // thingiverse.com/joo   wiki.fablab-nuernberg.de
-
 // units: mm; microseconds; radians
 // origin: bottom left of drawing surface
-
 // time library see http://playground.arduino.cc/Code/time 
+// RTC  library see http://playground.arduino.cc/Code/time 
+//               or http://www.pjrc.com/teensy/td_libs_DS1307RTC.html  
+// Change log:
+// 1.01  Release by joo at https://github.com/9a/plotclock
+// 1.02  Additional features implemented by Dave:
+//       - added ability to calibrate servofaktor seperately for left and right servos
+//       - added code to support DS1307, DS1337 and DS3231 real time clock chips
+//       - see http://www.pjrc.com/teensy/td_libs_DS1307RTC.html for how to hook up the real time clock 
 
-// delete or mark the next line as comment when done with calibration  
-#define CALIBRATION
+// delete or mark the next line as comment if you don't need these
+//#define CALIBRATION      // enable calibration mode
+#define REALTIMECLOCK    // enable real time clock
 
 // When in calibration mode, adjust the following factor until the servos move exactly 90 degrees
-#define SERVOFAKTOR 620
+#define SERVOFAKTORLEFT 800
+#define SERVOFAKTORRIGHT 650
 
 // Zero-position of left and right servo
 // When in calibration mode, adjust the NULL-values so that the servo arms are at all times parallel
 // either to the X or Y axis
-#define SERVOLEFTNULL 1900
-#define SERVORIGHTNULL 984
+#define SERVOLEFTNULL 2250
+#define SERVORIGHTNULL 920
 
 #define SERVOPINLIFT  2
 #define SERVOPINLEFT  3
@@ -37,17 +45,24 @@
 #define L2 55.1
 #define L3 13.2
 
-
 // origin points of left and right servo 
 #define O1X 22
 #define O1Y -25
 #define O2X 47
 #define O2Y -25
 
-
-
 #include <Time.h> // see http://playground.arduino.cc/Code/time 
 #include <Servo.h>
+
+#ifdef REALTIMECLOCK
+// for instructions on how to hook up a real time clock,
+// see here -> http://www.pjrc.com/teensy/td_libs_DS1307RTC.html
+// DS1307RTC works with the DS1307, DS1337 and DS3231 real time clock chips.
+// Please run the SetTime example to initialize the time on new RTC chips and begin running.
+
+  #include <Wire.h>
+  #include <DS1307RTC.h> // see http://playground.arduino.cc/Code/time    
+#endif
 
 int servoLift = 1500;
 
@@ -62,8 +77,34 @@ int last_min = 0;
 
 void setup() 
 { 
+#ifdef REALTIMECLOCK
+  Serial.begin(9600);
+  //while (!Serial) { ; } // wait for serial port to connect. Needed for Leonardo only
+
+  // Set current time only the first to values, hh,mm are needed  
+  tmElements_t tm;
+  if (RTC.read(tm)) 
+  {
+    setTime(tm.Hour,tm.Minute,tm.Second,tm.Day,tm.Month,tm.Year);
+    Serial.println("DS1307 time is set OK.");
+  } 
+  else 
+  {
+    if (RTC.chipPresent())
+    {
+      Serial.println("DS1307 is stopped.  Please run the SetTime example to initialize the time and begin running.");
+    } 
+    else 
+    {
+      Serial.println("DS1307 read error!  Please check the circuitry.");
+    } 
+    // Set current time only the first to values, hh,mm are needed
+    setTime(19,38,0,0,0,0);
+  }
+#else  
   // Set current time only the first to values, hh,mm are needed
   setTime(19,38,0,0,0,0);
+#endif
 
   drawTo(75.2, 47);
   lift(0);
@@ -392,7 +433,7 @@ void set_XY(double Tx, double Ty)
   a1 = atan2(dy, dx); //
   a2 = return_angle(L1, L2, c);
 
-  servo2.writeMicroseconds(floor(((a2 + a1 - M_PI) * SERVOFAKTOR) + SERVOLEFTNULL));
+  servo2.writeMicroseconds(floor(((a2 + a1 - M_PI) * SERVOFAKTORLEFT) + SERVOLEFTNULL));
 
   // calculate joinr arm point for triangle of the right servo arm
   a2 = return_angle(L2, L1, c);
@@ -407,7 +448,7 @@ void set_XY(double Tx, double Ty)
   a1 = atan2(dy, dx);
   a2 = return_angle(L1, (L2 - L3), c);
 
-  servo3.writeMicroseconds(floor(((a1 - a2) * SERVOFAKTOR) + SERVORIGHTNULL));
+  servo3.writeMicroseconds(floor(((a1 - a2) * SERVOFAKTORRIGHT) + SERVORIGHTNULL));
 
 }
 
